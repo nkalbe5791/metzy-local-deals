@@ -199,6 +199,21 @@ function AuthPage() {
 
   async function handleGoogle() {
     setError(null);
+
+    // The Google OAuth button is powered by Lovable Cloud's own auth broker,
+    // which only exists behind Lovable's own hosting (it intercepts
+    // "/~oauth/*" requests at the edge). On any other host — like this
+    // Vercel deployment — that route simply doesn't exist and the browser
+    // would hard-navigate to a 404. Detect that up front and fail
+    // gracefully instead of sending the user to a dead page.
+    const isLovableHostedDomain = /(^|\.)lovable\.app$/.test(window.location.hostname);
+    if (!isLovableHostedDomain) {
+      setError(
+        "La connexion avec Google n'est pas encore disponible sur ce site. Utilise ton email et ton mot de passe pour continuer — désolé pour la gêne !",
+      );
+      return;
+    }
+
     setBusy(true);
     try {
       if (referralCode.trim()) rememberReferralCode(referralCode);
