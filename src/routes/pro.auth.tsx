@@ -154,6 +154,19 @@ function ProAuthPage() {
 
   async function handleGoogle() {
     setError(null);
+
+    // See src/routes/auth.tsx for the full explanation: Lovable Cloud's
+    // Google OAuth broker only exists on Lovable's own hosting, so on any
+    // other domain (like this Vercel deployment) it 404s. Fail gracefully
+    // instead of sending the user to a dead page.
+    const isLovableHostedDomain = /(^|\.)lovable\.app$/.test(window.location.hostname);
+    if (!isLovableHostedDomain) {
+      setError(
+        "La connexion avec Google n'est pas encore disponible sur ce site. Utilisez votre email et votre mot de passe pour continuer — désolé pour la gêne !",
+      );
+      return;
+    }
+
     setBusy(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
